@@ -23,10 +23,11 @@ class NoBackendError(Exception):
 class Method():
     """Used to indicate which comm backends should be tried by find_bricks/
 find_one_brick. Any or all can be selected."""
-    def __init__(self, usb=True, bluetooth=True, fantomusb=False, fantombt=False):
+    def __init__(self, usb=True, bluetooth=True, device=False, fantomusb=False, fantombt=False):
         #new method options MUST default to False!
         self.usb = usb
         self.bluetooth = bluetooth
+        self.device = device
         self.fantom = fantomusb or fantombt
         self.fantomusb = fantomusb
         self.fantombt = fantombt
@@ -60,6 +61,14 @@ def find_bricks(host=None, name=None, silent=False, method=Method()):
             import sys
             if not silent: print >>sys.stderr, "Bluetooth module unavailable, not searching there"
     
+    if method.device:
+        try:
+            import devsock
+            yield devsock.DeviceSocket()
+            methods_available += 1
+        except IOError:
+            pass
+
     if method.fantom:
         try:
             import fantomsock
